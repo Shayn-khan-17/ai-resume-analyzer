@@ -11,7 +11,16 @@ const {
   generateFallbackJobSuggestions, 
   generateFallbackInternshipSuggestions 
 } = require("../utils/suggestionGenerator");
-const { experienceLevels } = require("../config/constants");
+
+// Define experience level mapping directly in the controller
+const EXPERIENCE_LEVELS = {
+  'phd': 'senior',
+  'masters': 'mid-level',
+  'bachelors': 'entry',
+  'highschool': 'entry',
+  'student': 'intern',
+  'unknown': 'entry'
+};
 
 /**
  * Controller for resume analysis endpoint
@@ -33,7 +42,7 @@ async function analyzeResumeController(req, res) {
     }
 
     const educationLevel = detectEducationLevel(resumeText);
-    const experienceLevel = getExperienceLevel(educationLevel, experienceLevels);
+    const experienceLevel = getExperienceLevel(educationLevel, EXPERIENCE_LEVELS);
     const yearsExperience = extractYearsOfExperience(resumeText);
     const suggestInternships = shouldSuggestInternships(educationLevel, resumeText);
     
@@ -98,9 +107,11 @@ async function analyzeResumeController(req, res) {
     });
   } finally {
     // Clean up uploaded file
-    fs.unlink(filePath, (err) => {
-      if (err) console.error("Failed to delete file:", err);
-    });
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlink(filePath, (err) => {
+        if (err) console.error("Failed to delete file:", err);
+      });
+    }
   }
 }
 

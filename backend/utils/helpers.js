@@ -53,10 +53,17 @@ function cleanJobTitle(title) {
  * @returns {string} Formatted salary
  */
 function formatSalary(job) {
-  if (job.job_min_salary && job.job_max_salary) {
-    return `$${job.job_min_salary} - $${job.job_max_salary}`;
-  } else if (job.job_salary) {
-    return job.job_salary;
+  // Add safety checks
+  if (!job) return "Not specified";
+  
+  try {
+    if (job.job_min_salary && job.job_max_salary) {
+      return `$${job.job_min_salary} - $${job.job_max_salary}`;
+    } else if (job.job_salary) {
+      return job.job_salary;
+    }
+  } catch (error) {
+    console.error("Error formatting salary:", error.message);
   }
   return "Not specified";
 }
@@ -67,12 +74,24 @@ function formatSalary(job) {
  * @returns {string} Best apply link
  */
 function getBestApplyLink(job) {
-  let applyLink = job.job_apply_link;
-  if (job.apply_options && job.apply_options.length > 0) {
-    const directOption = job.apply_options.find(opt => opt.is_direct);
-    applyLink = directOption ? directOption.apply_link : job.apply_options[0].apply_link;
+  // Add safety checks
+  if (!job) return '#';
+  
+  try {
+    let applyLink = job.job_apply_link;
+    
+    // Safely check apply_options
+    if (job.apply_options && Array.isArray(job.apply_options) && job.apply_options.length > 0) {
+      const directOption = job.apply_options.find(opt => opt && opt.is_direct);
+      applyLink = directOption && directOption.apply_link ? directOption.apply_link : 
+                  (job.apply_options[0] && job.apply_options[0].apply_link);
+    }
+    
+    return applyLink || '#';
+  } catch (error) {
+    console.error("Error getting apply link:", error.message);
+    return '#';
   }
-  return applyLink || '#';
 }
 
 module.exports = {
